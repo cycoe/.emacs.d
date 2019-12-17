@@ -59,7 +59,7 @@ prepended to the element after the #+HEADER: tag."
       (when text (insert text))))
   :pretty-hydra
   ((:title (pretty-hydra-title "Org Template" 'fileicon "org")
-    :color blue :quit-key "q")
+           :color blue :quit-key "q")
    ("Basic"
     (("a" (hot-expand "<a") "ascii")
      ("c" (hot-expand "<c") "center")
@@ -125,19 +125,22 @@ prepended to the element after the #+HEADER: tag."
                        (push '("#+HEADERS" . ?☰) prettify-symbols-alist)
                        (push '("#+RESULTS:" . ?💻) prettify-symbols-alist)
 
-                       (prettify-symbols-mode 1)))
+                       (prettify-symbols-mode 1)
+
+                       ;; set latex to xelatex
+                       ;; -shell-escape is for package minted, without it errors will emerge in coding highlight
+                       (setq-default org-latex-pdf-process '("xelatex -shell-escape -interaction nonstopmode %f"
+                                                             "xelatex -shell-escape -interaction nonstopmode %f"))))
          (org-indent-mode . (lambda()
                               (diminish 'org-indent-mode)
                               ;; WORKAROUND: Prevent text moving around while using brackets
                               ;; @see https://github.com/seagle0128/.emacs.d/issues/88
                               (make-variable-buffer-local 'show-paren-mode)
                               (setq show-paren-mode nil))))
-  :init (setq org-agenda-files '("~/org")
-              org-todo-keywords
+  :init (setq org-todo-keywords
               '((sequence "TODO(t)" "DOING(i)" "HANGUP(h)" "|" "DONE(d)" "CANCEL(c)")
-                (sequence "⚑(T)" "🏴(I)" "❓(H)" "|" "✔(D)" "✘(C)"))
-              org-todo-keyword-faces '(("HANGUP" . warning)
-                                       ("❓" . warning))
+                (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)" "|" "FIXED(f)"))
+              org-todo-keyword-faces '(("HANGUP" . warning))
               org-priority-faces '((?A . error)
                                    (?B . warning)
                                    (?C . success))
@@ -209,7 +212,7 @@ prepended to the element after the #+HEADER: tag."
   ;; Rich text clipboard
   (use-package org-rich-yank
     :bind (:map org-mode-map
-           ("C-M-y" . org-rich-yank)))
+                ("C-M-y" . org-rich-yank)))
 
   ;; Table of contents
   (use-package toc-org
@@ -225,12 +228,12 @@ prepended to the element after the #+HEADER: tag."
     :functions (org-display-inline-images
                 org-remove-inline-images)
     :bind (:map org-mode-map
-           ("C-<f7>" . org-tree-slide-mode)
-           :map org-tree-slide-mode-map
-           ("<left>" . org-tree-slide-move-previous-tree)
-           ("<right>" . org-tree-slide-move-next-tree)
-           ("S-SPC" . org-tree-slide-move-previous-tree)
-           ("SPC" . org-tree-slide-move-next-tree))
+                ("C-<f7>" . org-tree-slide-mode)
+                :map org-tree-slide-mode-map
+                ("<left>" . org-tree-slide-move-previous-tree)
+                ("<right>" . org-tree-slide-move-next-tree)
+                ("S-SPC" . org-tree-slide-move-previous-tree)
+                ("SPC" . org-tree-slide-move-next-tree))
     :hook ((org-tree-slide-play . (lambda ()
                                     (text-scale-increase 4)
                                     (org-display-inline-images)
@@ -250,7 +253,7 @@ prepended to the element after the #+HEADER: tag."
     (org-pomodoro-mode-line-overtime ((t (:inherit error))))
     (org-pomodoro-mode-line-break ((t (:inherit success))))
     :bind (:map org-agenda-mode-map
-           ("P" . org-pomodoro))))
+                ("P" . org-pomodoro))))
 
 (provide 'init-org)
 
