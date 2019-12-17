@@ -151,6 +151,7 @@ decrease this. If you experience stuttering, increase this.")
 
 (require 'init-markdown)
 (require 'init-org)
+(require 'init-latex)
 
 ;;(require 'init-rss)
 (require 'init-utils)
