@@ -1,6 +1,6 @@
 ;;; init-package.el --- Initialize package configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2006-2020 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -45,7 +45,7 @@
 (advice-add 'package--save-selected-packages :override #'my-save-selected-packages)
 
 ;; Set ELPA packages
-(set-package-archives centaur-package-archives)
+(set-package-archives centaur-package-archives nil nil t)
 
 ;; Initialize packages
 (unless (bound-and-true-p package--initialized) ; To avoid warnings in 27
@@ -75,7 +75,7 @@
 (use-package gnu-elpa-keyring-update)
 
 ;; Initialization benchmark
-(when centaur-benchmark
+(when centaur-benchmark-init
   (use-package benchmark-init
     :defines swiper-font-lock-exclude
     :commands (benchmark-init/activate)

@@ -1,6 +1,6 @@
 ;; init-custom.el --- Define customizations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2006-2020 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -58,7 +58,18 @@
   :group 'centaur
   :type 'string)
 
-;; ELPA: refer to https://github.com/melpa/melpa and https://elpa.emacs-china.org/.
+(defcustom centaur-server t
+  "Enable `server-mode' or not."
+  :group 'centaur
+  :type 'boolean)
+
+(defcustom centaur-icon (display-graphic-p)
+  "Display icons or not."
+  :group 'centaur
+  :type 'boolean)
+
+;; Emacs Lisp Package Archive (ELPA)
+;; @see https://github.com/melpa/melpa and https://elpa.emacs-china.org/.
 (defcustom centaur-package-archives-alist
   (let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
                       (not (gnutls-available-p))))
@@ -75,6 +86,9 @@
       ,(cons 'netease
              `(,(cons "gnu"   (concat proto "://mirrors.163.com/elpa/gnu/"))
                ,(cons "melpa" (concat proto "://mirrors.163.com/elpa/melpa/"))))
+      ,(cons 'ustc
+             `(,(cons "gnu"   (concat proto "://mirrors.ustc.edu.cn/elpa/gnu/"))
+               ,(cons "melpa" (concat proto "://mirrors.ustc.edu.cn/elpa/melpa/"))))
       ,(cons 'tencent
              `(,(cons "gnu"   (concat proto "://mirrors.cloud.tencent.com/elpa/gnu/"))
                ,(cons "melpa" (concat proto "://mirrors.cloud.tencent.com/elpa/melpa/"))))
@@ -103,17 +117,30 @@
                               name)))
                     centaur-package-archives-alist)))
 
+(defcustom centaur-theme-alist
+  '((default  . doom-one)
+    (classic  . doom-molokai)
+    (colorful . doom-snazzy)
+    (dark     . doom-dark+)
+    (light    . doom-one-light)
+    (day      . doom-acario-light)
+    (night    . doom-city-lights))
+  "The color theme list."
+  :group 'centaur
+  :type '(alist :key-type (symbol :tag "Theme name")
+                :value-type (symbol :tag "Internal theme name")))
+
 (defcustom centaur-theme 'default
   "Set color theme."
   :group 'centaur
-  :type '(choice
-          (const :tag "Default theme" default)
-          (const :tag "Classic theme" classic)
-          (const :tag "Dark theme" dark)
-          (const :tag "Light theme" light)
-          (const :tag "Day theme" day)
-          (const :tag "night theme" night)
-          symbol))
+  :type `(choice ,@(mapcar
+                    (lambda (item)
+                      (let ((name (car item)))
+                        (list 'const
+                              :tag (capitalize (symbol-name name))
+                              name)))
+                    centaur-theme-alist)
+                 symbol))
 
 (defcustom centaur-dashboard t
   "Use dashboard at startup or not.
@@ -126,7 +153,7 @@ If Non-nil, use dashboard, otherwise will restore previous session."
   :group 'centaur
   :type '(choice
           (const :tag "LSP Mode" 'lsp-mode)
-          (const :tag "eglot" 'eglot)
+          (const :tag "Eglot" 'eglot)
           nil))
 
 (defcustom centaur-chinese-calendar t
@@ -157,32 +184,49 @@ If Non-nil, use dashboard, otherwise will restore previous session."
   :group 'centaur
   :type '(alist :key-type string :value-type (choice character sexp)))
 
-(defcustom centaur-benchmark nil
-  "Enable the init benchmark or not."
+(defcustom centaur-benchmark-init nil
+  "Enable the initialization benchmark or not."
   :group 'centaur
   :type 'boolean)
 
 ;; Load `custom-file'
-;; If it doesn't exist, copy from the template, then load it.
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 
+;; At the first startup copy `custom-file' from the example,
+;; and select the package archives
 (let ((custom-example-file
        (expand-file-name "custom-example.el" user-emacs-directory)))
-  (if (and (file-exists-p custom-example-file)
-           (not (file-exists-p custom-file)))
-      (copy-file custom-example-file custom-file)))
+  (when (and (file-exists-p custom-example-file)
+             (not (file-exists-p custom-file)))
+    (copy-file custom-example-file custom-file)
 
-(if (file-exists-p custom-file)
-    (load custom-file))
+    (if (and (executable-find "curl")
+             (y-or-n-p "Do you want to select the fastest mirror automatically?"))
+        (progn
+          (message "Testing...Please wait a moment")
+          (set-package-archives (centaur-test-package-archives 'no-chart)))
+      (set-package-archives
+       (intern
+        ;; Use `ido-completing-read' for better experience since `ivy-mode'
+        ;; is not available at this moment.
+        (ido-completing-read
+         "Select package archives: "
+         (mapcar #'symbol-name
+                 (mapcar #'car centaur-package-archives-alist))))))))
 
-;; Load `custom-post.el'
+(and (file-readable-p custom-file) (load custom-file))
+
+;; Load `custom-post.org' or `custom-post.el'
 ;; Put personal configurations to override defaults here.
-(add-hook 'after-init-hook
-          (lambda ()
-            (let ((file
-                   (expand-file-name "custom-post.el" user-emacs-directory)))
-              (if (file-exists-p file)
-                  (load file)))))
+(defun load-custom-post-file ()
+  "Load custom-post file."
+  (let ((org-file (expand-file-name "custom-post.org" user-emacs-directory))
+        (file (expand-file-name "custom-post.el" user-emacs-directory)))
+    (cond ((file-exists-p org-file)
+           (org-babel-load-file org-file))
+          ((file-exists-p file)
+           (load file)))))
+(add-hook 'after-init-hook #'load-custom-post-file)
 
 (provide 'init-custom)
 

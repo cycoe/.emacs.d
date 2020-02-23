@@ -1,6 +1,6 @@
 ;; init-const.el --- Define constants.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2006-2020 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -49,6 +49,10 @@
 (defconst sys/mac-x-p
   (and (display-graphic-p) sys/macp)
   "Are we running under X on a Mac system?")
+
+(defconst sys/mac-cocoa-p
+  (featurep 'cocoa)
+  "Are we running with Cocoa on a Mac system?")
 
 (defconst sys/linux-x-p
   (and (display-graphic-p) sys/linuxp)

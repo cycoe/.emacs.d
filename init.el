@@ -1,10 +1,10 @@
 ;;; init.el --- A Fancy and Fast Emacs Configuration.	-*- lexical-binding: t no-byte-compile: t; -*-
 
-;; Copyright (C) 2006-2019 Vincent Zhang
+;; Copyright (C) 2006-2020 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
-;; Version: 5.7.0
+;; Version: 5.8.0
 ;; Keywords: .emacs.d centaur
 
 ;;
@@ -126,7 +126,7 @@ decrease this. If you experience stuttering, increase this.")
 (require 'init-package)
 
 ;; Preferences
-(require 'init-base)
+(require 'init-basic)
 (require 'init-hydra)
 
 (require 'init-ui)
@@ -173,7 +173,6 @@ decrease this. If you experience stuttering, increase this.")
 (require 'init-dart)
 (require 'init-elixir)
 (require 'init-web)
-(require 'init-scala)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init.el ends here

@@ -1,6 +1,6 @@
 ;; init-elisp.el --- Initialize Emacs Lisp configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2006-2020 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -50,7 +50,8 @@
          ("C-c C-b" . eval-buffer))
   :hook (emacs-lisp-mode . (lambda ()
                              "Disable the checkdoc checker."
-                             (setq flycheck-disabled-checkers '(emacs-lisp-checkdoc))))
+                             (setq-local flycheck-disabled-checkers
+                                         '(emacs-lisp-checkdoc))))
   :config
   (when (boundp 'elisp-flymake-byte-compile-load-path)
     (add-to-list 'elisp-flymake-byte-compile-load-path load-path))
@@ -160,7 +161,7 @@ Lisp function does not specify a special indentation."
           (goto-char (point-min))
           (let ((ad-index 0)
                 (ad-list (reverse (function-advices function))))
-            (while (re-search-forward "^.+ :[-a-z]+ advice: \\(.+\\)$" nil t)
+            (while (re-search-forward "^\\(?:This function has \\)?:[-a-z]+ advice: \\(.+\\)\\.?$" nil t)
               (let* ((name (string-trim (match-string 1) "'" "'"))
                      (advice (or (intern-soft name) (nth ad-index ad-list))))
                 (when (and advice (functionp advice))
@@ -238,9 +239,6 @@ Lisp function does not specify a special indentation."
               (set-face-background 'macrostep-expansion-highlight-face
                                    (face-background 'tooltip)))))
 
-;; Semantic code search for emacs lisp
-(use-package elisp-refs)
-
 ;; A better *Help* buffer
 (use-package helpful
   :defines (counsel-describe-function-function
@@ -274,16 +272,20 @@ Lisp function does not specify a special indentation."
   (define-advice helpful-callable (:after (function) advice-remove-button)
     (add-button-to-remove-advice (helpful--buffer function t) function))
   :config
-  (with-no-warnings
-    (defun my-helpful--navigate (button)
-      "Navigate to the path this BUTTON represents."
-      (find-file-other-window (substring-no-properties (button-get button 'path)))
-      ;; We use `get-text-property' to work around an Emacs 25 bug:
-      ;; http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=f7c4bad17d83297ee9a1b57552b1944020f23aea
-      (-when-let (pos (get-text-property button 'position
-                                         (marker-buffer button)))
-        (helpful--goto-char-widen pos)))
-    (advice-add #'helpful--navigate :override #'my-helpful--navigate)))
+  (defun my-helpful--navigate (button)
+    "Navigate to the path this BUTTON represents."
+    (find-file-other-window (substring-no-properties (button-get button 'path)))
+    ;; We use `get-text-property' to work around an Emacs 25 bug:
+    ;; http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=f7c4bad17d83297ee9a1b57552b1944020f23aea
+    (-when-let (pos (get-text-property button 'position
+                                       (marker-buffer button)))
+      (helpful--goto-char-widen pos)))
+  (advice-add #'helpful--navigate :override #'my-helpful--navigate))
+
+;; For ERT
+(use-package overseer
+  :diminish
+  :hook (emacs-lisp-mode . overseer-mode))
 
 (provide 'init-elisp)
 

@@ -1,6 +1,6 @@
 ;; init-edit.el --- Initialize editing configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2006-2020 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -33,26 +33,6 @@
 (eval-when-compile
   (require 'init-const))
 
-;; Miscs
-;; (setq initial-scratch-message nil)
-(setq uniquify-buffer-name-style 'post-forward-angle-brackets) ; Show path if names are same
-(setq adaptive-fill-regexp "[ t]+|[ t]*([0-9]+.|*+)[ t]*")
-(setq adaptive-fill-first-line-regexp "^* *$")
-(setq delete-by-moving-to-trash t)         ; Deleting files go to OS's trash folder
-(setq make-backup-files nil)               ; Forbide to make backup files
-(setq auto-save-default nil)               ; Disable auto save
-
-(setq-default major-mode 'text-mode)
-
-(setq sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*")
-(setq sentence-end-double-space nil)
-
-;; Tab and Space
-;; Permanently indent with spaces, never with TABs
-(setq-default c-basic-offset   4
-              tab-width        4
-              indent-tabs-mode nil)
-
 ;; Delete selection if you insert
 (use-package delsel
   :ensure nil
@@ -61,10 +41,15 @@
 ;; Rectangle
 (use-package rect
   :ensure nil
-  :bind (("<C-return>" . rect-hydra/body))
+  :bind (:map text-mode-map
+         ("<C-return>" . rect-hydra/body)
+         :map prog-mode-map
+         ("<C-return>" . rect-hydra/body)
+         :map org-mode-map
+         ("<s-return>" . rect-hydra/body))
   :pretty-hydra
   ((:title (pretty-hydra-title "Rectangle" 'material "border_all" :height 1.1 :v-adjust -0.225)
-    :color amaranth :body-pre (rectangle-mark-mode) :post (deactivate-mark) :quit-key "q")
+    :color amaranth :body-pre (rectangle-mark-mode) :post (deactivate-mark) :quit-key ("q" "C-g"))
    ("Move"
     (("h" backward-char "←")
      ("j" next-line "↓")
@@ -95,7 +80,6 @@
 ;; Pass a URL to a WWW browser
 (use-package browse-url
   :ensure nil
-  :defines dired-mode-map
   :bind (("C-c C-z ." . browse-url-at-point)
          ("C-c C-z b" . browse-url-of-buffer)
          ("C-c C-z r" . browse-url-of-region)
@@ -105,6 +89,33 @@
   :init
   (with-eval-after-load 'dired
     (bind-key "C-c C-z f" #'browse-url-of-file dired-mode-map)))
+
+(when (featurep 'xwidget-internal)
+  (use-package xwidget
+    :ensure nil
+    :bind (("C-c C-z w" . xwidget-webkit-browse-url)
+           :map xwidget-webkit-mode-map
+           ("?" . xwidget-hydra/body))
+    :pretty-hydra
+    ((:title (pretty-hydra-title "Webkit" 'faicon "chrome")
+      :color amaranth :quit-key "q")
+     ("Navigate"
+      (("b" xwidget-webkit-back "back")
+       ("f" xwidget-webkit-forward "forward")
+       ("r" xwidget-webkit-reload "refresh")
+       ("SPC" xwidget-webkit-scroll-up "scroll up")
+       ("DEL" xwidget-webkit-scroll-down "scroll down")
+       ("S-SPC" xwidget-webkit-scroll-down "scroll down"))
+      "Zoom"
+      (("+" xwidget-webkit-zoom-in "zoom in")
+       ("=" xwidget-webkit-zoom-in "zoom in")
+       ("-" xwidget-webkit-zoom-out "zoom out"))
+      "Misc"
+      (("g" xwidget-webkit-browse-url "browse url" :exit t)
+       ("u" xwidget-webkit-current-url "show url" :exit t)
+       ("w" xwidget-webkit-current-url-message-kill "copy url" :exit t)
+       ("h" describe-mode "help" :exit t)
+       ("Q" quit-window "quit" :exit t))))))
 
 ;; Click to browse URL or to send to e-mail address
 (use-package goto-addr
@@ -175,12 +186,8 @@
   ;; Be slightly less aggressive in C/C++/C#/Java/Go/Swift
   (add-to-list
    'aggressive-indent-dont-indent-if
-   '(and (or (derived-mode-p 'c-mode)
-             (derived-mode-p 'c++-mode)
-             (derived-mode-p 'csharp-mode)
-             (derived-mode-p 'java-mode)
-             (derived-mode-p 'go-mode)
-             (derived-mode-p 'swift-mode))
+   '(and (derived-mode-p 'c-mode 'c++-mode 'csharp-mode
+                         'java-mode 'go-mode 'swift-mode)
          (null (string-match "\\([;{}]\\|\\b\\(if\\|for\\|while\\)\\b\\)"
                              (thing-at-point 'line))))))
 
@@ -197,7 +204,12 @@
 ;; Redefine M-< and M-> for some modes
 (when emacs/>=25.3p
   (use-package beginend
-    :hook (after-init . beginend-global-mode)))
+    :diminish (beginend-mode beginend-global-mode)
+    :hook (after-init . beginend-global-mode)
+    :config
+    (mapc (lambda (pair)
+            (add-hook (car pair) (lambda () (diminish (cdr pair)))))
+          beginend-modes)))
 
 ;; An all-in-one comment command to rule them all
 (use-package comment-dwim-2
@@ -271,14 +283,20 @@
   :diminish
   :if (executable-find "aspell")
   :hook (((text-mode outline-mode) . flyspell-mode)
-         ;; (prog-mode . flyspell-prog-mode)
+         (prog-mode . flyspell-prog-mode)
          (flyspell-mode . (lambda ()
                             (dolist (key '("C-;" "C-," "C-."))
                               (unbind-key key flyspell-mode-map)))))
-  :init
-  (setq flyspell-issue-message-flag nil
-        ispell-program-name "aspell"
-        ispell-extra-args '("--sug-mode=ultra" "--lang=en_US" "--run-together")))
+  :init (setq flyspell-issue-message-flag nil
+              ispell-program-name "aspell"
+              ispell-extra-args '("--sug-mode=ultra" "--lang=en_US" "--run-together"))
+  :config
+  ;; Correcting words with flyspell via Ivy
+  (use-package flyspell-correct-ivy
+    :after ivy
+    :bind (:map flyspell-mode-map
+           ([remap flyspell-correct-word-before-point] . flyspell-correct-wrapper))
+    :init (setq flyspell-correct-interface #'flyspell-correct-ivy)))
 
 ;; Hungry deletion
 (use-package hungry-delete
@@ -299,8 +317,8 @@
 ;; Windows-scroll commands
 (use-package pager
   :bind (([remap scroll-up-command] . pager-page-down)
-         ([next]   . pager-page-down)
          ([remap scroll-down-command] . pager-page-up)
+         ([next]   . pager-page-down)
          ([prior]  . pager-page-up)
          ([M-up]   . pager-row-up)
          ([M-kp-8] . pager-row-up)
@@ -310,21 +328,15 @@
 ;; Treat undo history as a tree
 (use-package undo-tree
   :diminish
-  :defines recentf-exclude
   :hook (after-init . global-undo-tree-mode)
   :init
   (setq undo-tree-visualizer-timestamps t
         undo-tree-enable-undo-in-region nil
-        undo-tree-auto-save-history nil
-        undo-tree-history-directory-alist
-        `(("." . ,(locate-user-emacs-file "undo-tree-hist/"))))
+        undo-tree-auto-save-history nil)
 
-  ;; WORKAROUND:  keep the diff window
-  (with-no-warnings
-    (make-variable-buffer-local 'undo-tree-visualizer-diff)
-    (setq-default undo-tree-visualizer-diff t))
-  :config (dolist (dir undo-tree-history-directory-alist)
-            (push (expand-file-name (cdr dir)) recentf-exclude)))
+  ;; HACK: keep the diff window
+  (make-variable-buffer-local 'undo-tree-visualizer-diff)
+  (setq-default undo-tree-visualizer-diff t))
 
 ;; Goto last change
 (use-package goto-chg
@@ -362,7 +374,7 @@
 (use-package origami
   :pretty-hydra
   ((:title (pretty-hydra-title "Origami" 'octicon "fold")
-    :color blue :quit-key "q")
+    :color amaranth :quit-key "q")
    ("Node"
     ((":" origami-recursively-toggle-node "toggle recursively")
      ("a" origami-toggle-all-nodes "toggle all")
@@ -386,16 +398,6 @@
 (use-package fancy-narrow
   :diminish
   :hook (after-init . fancy-narrow-mode))
-
-;; Edit text for browsers with GhostText or AtomicChrome extension
-(use-package atomic-chrome
-  :hook ((emacs-startup . atomic-chrome-start-server)
-         (atomic-chrome-edit-mode . delete-other-windows))
-  :init (setq atomic-chrome-buffer-open-style 'frame)
-  :config
-  (if (fboundp 'gfm-mode)
-      (setq atomic-chrome-url-major-mode-alist
-            '(("github\\.com" . gfm-mode)))))
 
 (provide 'init-edit)
 

@@ -1,6 +1,6 @@
 ;; init-prog.el --- Initialize programming configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2006-2020 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -69,7 +69,7 @@
         dumb-jump-selector 'ivy))
 
 (use-package editorconfig
-  :diminish editorconfig-mode
+  :diminish
   :hook (after-init . editorconfig-mode))
 
 ;; Run commands quickly
@@ -81,10 +81,12 @@
 (use-package csharp-mode)
 (use-package csv-mode)
 (use-package dockerfile-mode)
+(use-package julia-mode)
 (use-package lua-mode)
 (use-package plantuml-mode)
 (use-package powershell)
 (use-package rmsbolt)                   ; A compiler output viewer
+(use-package scala-mode)
 (use-package swift-mode)
 (use-package vimrc-mode)
 
@@ -99,7 +101,7 @@
 ;; Batch Mode eXtras
 (use-package bmx-mode
   :after company
-  :diminish bmx-mode
+  :diminish
   :hook (after-init . bmx-mode-setup-defaults))
 
 ;; Fish shell

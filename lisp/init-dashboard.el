@@ -1,6 +1,6 @@
 ;; init-dashboard.el --- Initialize dashboard configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2018-2020 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -39,13 +39,8 @@
 (when centaur-dashboard
   (use-package dashboard
     :diminish (dashboard-mode page-break-lines-mode)
-    :defines persp-special-last-buffer
     :functions (all-the-icons-faicon
                 all-the-icons-material
-                open-custom-file
-                persp-get-buffer-or-null
-                persp-load-state-from-file
-                persp-switch-to-buffer
                 winner-undo
                 widget-forward)
     :custom-face (dashboard-heading ((t (:inherit (font-lock-string-face bold)))))
@@ -55,8 +50,8 @@
      ("Navigator"
       (("U" update-config-and-packages "update" :exit t)
        ("H" browse-homepage "homepage" :exit t)
-       ("R" restore-session "recover session" :exit t)
-       ("L" persp-load-state-from-file "list sessions" :exit t)
+       ("R" restore-previous-session "recover session" :exit t)
+       ("L" restore-session "list sessions" :exit t)
        ("S" open-custom-file "settings" :exit t))
       "Section"
       (("}" dashboard-next-section "next")
@@ -78,16 +73,15 @@
     :bind (("<f2>" . open-dashboard)
            :map dashboard-mode-map
            ("H" . browse-homepage)
-           ("R" . restore-session)
-           ("L" . persp-load-state-from-file)
+           ("R" . restore-previous-session)
+           ("L" . restore-session)
            ("S" . open-custom-file)
            ("U" . update-config-and-packages)
            ("q" . quit-dashboard)
            ("h" . dashboard-hydra/body)
            ("?" . dashboard-hydra/body))
     :hook (dashboard-mode . (lambda () (setq-local frame-title-format "")))
-    :init (dashboard-setup-startup-hook)
-    :config
+    :init
     (setq dashboard-banner-logo-title "CENTAUR EMACS - Enjoy Programming & Writing"
           dashboard-startup-banner (or centaur-logo 'official)
           dashboard-center-content t
@@ -97,17 +91,17 @@
                             (projects . 5))
 
           dashboard-set-init-info t
-          dashboard-set-file-icons t
-          dashboard-set-heading-icons t
+          dashboard-set-file-icons centaur-icon
+          dashboard-set-heading-icons centaur-icon
           dashboard-heading-icons '((recents   . "file-text")
                                     (bookmarks . "bookmark")
                                     (agenda    . "calendar")
-                                    (projects  . "file-directory")
+                                    (projects  . "briefcase")
                                     (registers . "database"))
 
           dashboard-set-footer t
           dashboard-footer (format "Powered by Vincent Zhang, %s" (format-time-string "%Y"))
-          dashboard-footer-icon (cond ((display-graphic-p)
+          dashboard-footer-icon (cond ((icons-displayable-p)
                                        (all-the-icons-faicon "heart"
                                                              :height 1.1
                                                              :v-adjust -0.05
@@ -117,33 +111,55 @@
 
           dashboard-set-navigator t
           dashboard-navigator-buttons
-          `(((,(when (display-graphic-p)
+          `(((,(when (icons-displayable-p)
                  (all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0))
               "Homepage" "Browse homepage"
               (lambda (&rest _) (browse-url centaur-homepage)))
-             (,(when (display-graphic-p)
+             (,(when (icons-displayable-p)
                  (all-the-icons-material "restore" :height 1.35 :v-adjust -0.24))
               "Restore" "Restore previous session"
-              (lambda (&rest _) (restore-session)))
-             (,(when (display-graphic-p)
+              (lambda (&rest _) (restore-previous-session)))
+             (,(when (icons-displayable-p)
                  (all-the-icons-octicon "tools" :height 1.0 :v-adjust 0.0))
               "Settings" "Open custom file"
               (lambda (&rest _) (find-file custom-file)))
-             (,(when (display-graphic-p)
+             (,(when (icons-displayable-p)
                  (all-the-icons-material "update" :height 1.35 :v-adjust -0.24))
               "Update" "Update Centaur Emacs"
               (lambda (&rest _) (centaur-update)))
-             (,(if (display-graphic-p)
+             (,(if (icons-displayable-p)
                    (all-the-icons-faicon "question" :height 1.2 :v-adjust -0.1)
                  "?")
               "" "Help (?/h)"
               (lambda (&rest _) (dashboard-hydra/body))
               font-lock-string-face))))
 
+    (dashboard-setup-startup-hook)
+    :config
     (defun my-banner-path (&rest _)
       "Return the full path to banner."
       (expand-file-name "banner.txt" user-emacs-directory))
     (advice-add #'dashboard-get-banner-path :override #'my-banner-path)
+
+    ;; WORKAROUND: fix differnct background color of the banner image.
+    ;; @see https://github.com/emacs-dashboard/emacs-dashboard/issues/203
+    (defun my-dashboard-insert-image-banner (banner)
+      "Display an image BANNER."
+      (when (file-exists-p banner)
+        (let* ((title dashboard-banner-logo-title)
+               (spec (create-image banner))
+               (size (image-size spec))
+               (width (car size))
+               (left-margin (max 0 (floor (- dashboard-banner-length width) 2))))
+          (goto-char (point-min))
+          (insert "\n")
+          (insert (make-string left-margin ?\ ))
+          (insert-image spec)
+          (insert "\n\n")
+          (when title
+            (dashboard-center-line title)
+            (insert (format "%s\n\n" (propertize title 'face 'dashboard-banner-logo-title)))))))
+    (advice-add #'dashboard-insert-image-banner :override #'my-dashboard-insert-image-banner)
 
     (defvar dashboard-recover-layout-p nil
       "Wether recovers the layout.")
@@ -172,20 +188,6 @@
       (goto-char (point-min))
       (dashboard-goto-recent-files))
 
-    (defun restore-session ()
-      "Restore last session."
-      (interactive)
-      (when (bound-and-true-p persp-mode)
-        (message "Restoring session...")
-        (condition-case-unless-debug err
-            (persp-load-state-from-file)
-          (error
-           (message "Error: Unable to restore last session -- %s" err)))
-        (quit-window t)
-        (when (persp-get-buffer-or-null persp-special-last-buffer)
-          (persp-switch-to-buffer persp-special-last-buffer))
-        (message "Done")))
-
     (defun quit-dashboard ()
       "Quit dashboard window."
       (interactive)
@@ -195,20 +197,41 @@
         (winner-undo)
         (setq dashboard-recover-layout-p nil)))
 
+    (defun restore-previous-session ()
+      "Restore the previous session."
+      (interactive)
+      (when (bound-and-true-p persp-mode)
+        (restore-session persp-auto-save-fname)))
+
+    (defun restore-session (fname)
+      "Restore the specified session."
+      (interactive (list (read-file-name "Load perspectives from a file: "
+                                         persp-save-dir)))
+      (when (bound-and-true-p persp-mode)
+        (message "Restoring session...")
+        (quit-window t)
+        (condition-case-unless-debug err
+            (persp-load-state-from-file fname)
+          (error "Error: Unable to restore session -- %s" err))
+        (message "Done")))
+
     (defun dashboard-goto-recent-files ()
       "Go to recent files."
       (interactive)
-      (funcall (local-key-binding "r")))
+      (let (func (local-key-binding "r"))
+        (and func (funcall func))))
 
     (defun dashboard-goto-projects ()
       "Go to projects."
       (interactive)
-      (funcall (local-key-binding "p")))
+      (let ((func (local-key-binding "p")))
+        (and func (funcall func))))
 
     (defun dashboard-goto-bookmarks ()
       "Go to bookmarks."
       (interactive)
-      (funcall (local-key-binding "m")))))
+      (let ((func (local-key-binding "m")))
+        (and func (funcall func))))))
 
 (provide 'init-dashboard)
 

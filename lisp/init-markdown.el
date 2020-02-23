@@ -1,6 +1,6 @@
 ;; init-markdown.el --- Initialize markdown configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2009-2020 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -34,20 +34,7 @@
   (require 'init-const))
 
 (use-package markdown-mode
-  :defines flycheck-markdown-markdownlint-cli-config
-  :preface
-  ;; Lint: npm i -g markdownlint-cli
-  (defun flycheck-enable-markdownlint ()
-    "Set the `mardkownlint' config file for the current buffer."
-    (let* ((md-lint ".markdownlint.json")
-           (md-file buffer-file-name)
-           (md-lint-dir (and md-file
-                             (locate-dominating-file md-file md-lint))))
-      (setq-local flycheck-markdown-markdownlint-cli-config
-                  (concat md-lint-dir md-lint))))
-  :hook ((markdown-mode . flyspell-mode)
-         (markdown-mode . auto-fill-mode)
-         (markdown-mode . flycheck-enable-markdownlint))
+  :hook ((markdown-mode . auto-fill-mode))
   :mode (("README\\.md\\'" . gfm-mode))
   :init
   (setq markdown-enable-wiki-links t
@@ -56,7 +43,6 @@
         markdown-make-gfm-checkboxes-buttons t
         markdown-gfm-uppercase-checkbox t
         markdown-fontify-code-blocks-natively t
-        markdown-enable-math t
 
         markdown-content-type "application/xhtml+xml"
         markdown-css-paths '("https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css"
@@ -88,7 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
   ;; Install: pip install grip
   (use-package grip-mode
     :bind (:map markdown-mode-command-map
-           ("g" . grip-mode)))
+           ("g" . grip-mode))
+    :init
+    (setq grip-update-after-change nil)
+    (let ((credential (auth-source-user-and-password "api.github.com")))
+      (setq grip-github-user (car credential)
+            grip-github-password (cadr credential))))
 
   ;; Table of contents
   (use-package markdown-toc

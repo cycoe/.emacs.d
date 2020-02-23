@@ -1,6 +1,6 @@
 ;; init-utils.el --- Initialize ultilities.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Vincent Zhang
+;; Copyright (C) 2006-2020 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -36,27 +36,39 @@
 
 ;; Display available keybindings in popup
 (use-package which-key
-  :diminish which-key-mode
-  :bind (:map help-map ("C-h" . which-key-C-h-dispatch))
+  :diminish
+  :bind ("C-h M-m" . which-key-show-major-mode)
   :hook (after-init . which-key-mode))
 
 ;; Youdao Dictionary
 (use-package youdao-dictionary
+  :commands youdao-dictionary-play-voice-of-current-word
   :bind (("C-c y" . my-youdao-search-at-point)
-         ("C-c Y" . youdao-dictionary-search-at-point))
+         ("C-c Y" . youdao-dictionary-search-at-point)
+         :map youdao-dictionary-mode-map
+         ("h" . youdao-dictionary-hydra/body)
+         ("?" . youdao-dictionary-hydra/body))
   :init
   (setq url-automatic-caching t
         youdao-dictionary-use-chinese-word-segmentation t) ; 中文分词
 
-  (with-no-warnings
-    (defun my-youdao-search-at-point ()
-      "Search word at point and display result with `posframe', `pos-tip', or buffer."
-      (interactive)
-      (if (display-graphic-p)
-          (if emacs/>=26p
-              (youdao-dictionary-search-at-point-posframe)
-            (youdao-dictionary-search-at-point-tooltip))
-        (youdao-dictionary-search-at-point)))))
+  (defun my-youdao-search-at-point ()
+    "Search word at point and display result with `posframe', `pos-tip', or buffer."
+    (interactive)
+    (if (display-graphic-p)
+        (if emacs/>=26p
+            (youdao-dictionary-search-at-point-posframe)
+          (youdao-dictionary-search-at-point-tooltip))
+      (youdao-dictionary-search-at-point)))
+  :config
+  (with-eval-after-load 'hydra
+    (defhydra youdao-dictionary-hydra (:color blue)
+      ("p" youdao-dictionary-play-voice-of-current-word "play voice of current word")
+      ("y" youdao-dictionary-play-voice-at-point "play voice at point")
+      ("q" quit-window "quit")
+      ("C-g" nil nil)
+      ("h" nil nil)
+      ("?" nil nil))))
 
 ;;
 ;; Search tools
@@ -128,20 +140,9 @@
 
 ;; Persistent the scratch buffer
 (use-package persistent-scratch
-  :preface
-  (defun my-save-buffer ()
-    "Save scratch and other buffer."
-    (interactive)
-    (let ((scratch-name "*scratch*"))
-      (if (string-equal (buffer-name) scratch-name)
-          (progn
-            (message "Saving %s..." scratch-name)
-            (persistent-scratch-save)
-            (message "Wrote %s" scratch-name))
-        (save-buffer))))
-  :hook (after-init . persistent-scratch-setup-default)
-  :bind (:map lisp-interaction-mode-map
-         ("C-x C-s" . my-save-buffer)))
+  :diminish
+  :hook ((after-init . persistent-scratch-autosave-mode)
+         (lisp-interaction-mode . persistent-scratch-mode)))
 
 ;; PDF reader
 (when (display-graphic-p)
@@ -162,7 +163,7 @@
     (when sys/macp
       (setenv "PKG_CONFIG_PATH"
               "/usr/local/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig"))
-    (pdf-tools-install t nil t t)
+    (pdf-tools-install t nil t nil)
 
     ;; Set dark theme
     (defun my-pdf-view-set-midnight-colors ()
@@ -186,28 +187,27 @@
     ;; and https://github.com/politza/pdf-tools/pull/501/
     (setq pdf-view-use-scaling t
           pdf-view-use-imagemagick nil)
-    (with-no-warnings
-      (defun pdf-view-use-scaling-p ()
-        "Return t if scaling should be used."
-        (and (or (and (eq system-type 'darwin) (string-equal emacs-version "27.0.50"))
-                 (memq (pdf-view-image-type)
-                       '(imagemagick image-io)))
-             pdf-view-use-scaling))
-      (defun pdf-view-create-page (page &optional window)
-        "Create an image of PAGE for display on WINDOW."
-        (let* ((size (pdf-view-desired-image-size page window))
-               (width (if (not (pdf-view-use-scaling-p))
-                          (car size)
-                        (* 2 (car size))))
-               (data (pdf-cache-renderpage
-                      page width width))
-               (hotspots (pdf-view-apply-hotspot-functions
-                          window page size)))
-          (pdf-view-create-image data
-            :width width
-            :scale (if (pdf-view-use-scaling-p) 0.5 1)
-            :map hotspots
-            :pointer 'arrow))))
+
+    (defun pdf-view-use-scaling-p ()
+      "Return t if scaling should be used."
+      (and (or (and (eq system-type 'darwin) (>= emacs-major-version 27))
+               (memq (pdf-view-image-type) '(imagemagick image-io)))
+           pdf-view-use-scaling))
+    (defun pdf-view-create-page (page &optional window)
+      "Create an image of PAGE for display on WINDOW."
+      (let* ((size (pdf-view-desired-image-size page window))
+             (width (if (not (pdf-view-use-scaling-p))
+                        (car size)
+                      (* 2 (car size))))
+             (data (pdf-cache-renderpage
+                    page width width))
+             (hotspots (pdf-view-apply-hotspot-functions
+                        window page size)))
+        (pdf-view-create-image data
+          :width width
+          :scale (if (pdf-view-use-scaling-p) 0.5 1)
+          :map hotspots
+          :pointer 'arrow)))
 
     ;; Recover last viewed position
     (when emacs/>=26p
@@ -219,24 +219,25 @@
 ;; Epub reader
 (use-package nov
   :mode ("\\.epub\\'" . nov-mode)
-  :preface
-  (defun my-nov-setup ()
-    (visual-line-mode 1)
-    (face-remap-add-relative 'variable-pitch :family "Times New Roman" :height 1.5)
-    (if (fboundp 'olivetti-mode) (olivetti-mode 1)))
+  :functions centaur-read-mode
   :hook (nov-mode . my-nov-setup)
+  :init
+  (defun my-nov-setup ()
+    "Setup `nov-mode' for better reading experience."
+    (visual-line-mode 1)
+    (centaur-read-mode)
+    (face-remap-add-relative 'variable-pitch :family "Times New Roman" :height 1.5))
   :config
   ;; FIXME: errors while opening `nov' files with Unicode characters
   ;; @see https://github.com/wasamasa/nov.el/issues/63
-  (with-no-warnings
-    (defun my-nov-content-unique-identifier (content)
-      "Return the the unique identifier for CONTENT."
-      (when-let* ((name (nov-content-unique-identifier-name content))
-                  (selector (format "package>metadata>identifier[id='%s']"
-                                    (regexp-quote name)))
-                  (id (car (esxml-node-children (esxml-query selector content)))))
-        (intern id)))
-    (advice-add #'nov-content-unique-identifier :override #'my-nov-content-unique-identifier))
+  (defun my-nov-content-unique-identifier (content)
+    "Return the the unique identifier for CONTENT."
+    (let* ((name (nov-content-unique-identifier-name content))
+           (selector (format "package>metadata>identifier[id='%s']"
+                             (regexp-quote name)))
+           (id (car (esxml-node-children (esxml-query selector content)))))
+      (and id (intern id))))
+  (advice-add #'nov-content-unique-identifier :override #'my-nov-content-unique-identifier)
 
   ;; Fix encoding issue on Windows
   (when sys/win32p
@@ -253,6 +254,16 @@
                                (text-scale-set +2)
                              (text-scale-set 0))))
   :init (setq olivetti-body-width 0.618))
+
+;; Edit text for browsers with GhostText or AtomicChrome extension
+(use-package atomic-chrome
+  :hook ((emacs-startup . atomic-chrome-start-server)
+         (atomic-chrome-edit-mode . delete-other-windows))
+  :init (setq atomic-chrome-buffer-open-style 'frame)
+  :config
+  (if (fboundp 'gfm-mode)
+      (setq atomic-chrome-url-major-mode-alist
+            '(("github\\.com" . gfm-mode)))))
 
 ;; Music player
 (use-package bongo
