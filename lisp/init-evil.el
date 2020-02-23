@@ -1,8 +1,11 @@
 (use-package evil-leader
-  :init
-  (global-evil-leader-mode t)
-  (evil-leader/set-leader "<SPC>")
-  (evil-leader/set-key
+   :ensure t
+   :after evil
+   :config
+   (global-evil-leader-mode t)
+   :init
+   (evil-leader/set-leader "<SPC>")
+   (evil-leader/set-key
     ";" 'counsel-M-x
     "0" 'select-window-0
     "1" 'select-window-1
@@ -20,19 +23,24 @@
 
 (use-package evil-matchit
   :ensure t
+  :after evil
   :config
-  (global-evil-surround-mode t))
+  (global-evil-matchit-mode t))
 
 (use-package evil-surround
   :ensure t
+  :after evil
   :config
   (global-evil-surround-mode 1))
 
 (use-package evil-easymotion
+  :ensure t
+  :after evil
   :config
   (evilem-default-keybindings "m"))
 
 (use-package evil
+  :ensure t
   :config
   (evil-mode t))
 
