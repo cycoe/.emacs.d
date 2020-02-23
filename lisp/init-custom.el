@@ -38,17 +38,17 @@
   :group 'convenience
   :link '(url-link :tag "Homepage" "https://github.com/seagle0128/.emacs.d"))
 
-(defcustom centaur-logo (expand-file-name "logo.png" user-emacs-directory)
+(defcustom centaur-logo (expand-file-name "Nerv.png" user-emacs-directory)
   "Set Centaur logo. nil means official logo."
   :group 'centaur
   :type 'string)
 
-(defcustom centaur-full-name "Vincent Zhang"
+(defcustom centaur-full-name "Cycoe Joo"
   "Set user full name."
   :group 'centaur
   :type 'string)
 
-(defcustom centaur-mail-address "seagle0128@gmail.com"
+(defcustom centaur-mail-address "cycoejoo@163.com"
   "Set user email address."
   :group 'centaur
   :type 'string)
