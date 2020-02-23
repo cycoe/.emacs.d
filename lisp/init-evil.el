@@ -33,10 +33,12 @@
   :config
   (global-evil-matchit-mode 1))
 
-(use-package evil-surround
-  :ensure t
-  :config
-  (global-evil-surround-mode 1))
+;; (use-package evil-surround
+;;   :ensure t
+;;   :config
+;;   (global-evil-surround-mode 1))
+(require 'evil-surround)
+(global-evil-surround-mode 1)
 
 ;; optional: this is the evil state that evil-magit will use
 ;; (setq evil-magit-state 'normal)
