@@ -38,7 +38,7 @@
   :ensure nil
   :bind (:map c-mode-base-map
          ("C-c c" . compile))
-  :hook (c-mode-common . (lambda () (c-set-style "stroustrup")))
+  :hook (c-mode-common . (lambda () (c-set-style "gnu")))
   :init (setq-default c-basic-offset 2
                       tab-width 2)
   :config
