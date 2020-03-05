@@ -59,7 +59,7 @@ prepended to the element after the #+HEADER: tag."
       (when text (insert text))))
   :pretty-hydra
   ((:title (pretty-hydra-title "Org Template" 'fileicon "org")
-           :color blue :quit-key "q")
+    :color blue :quit-key "q")
    ("Basic"
     (("a" (hot-expand "<a") "ascii")
      ("c" (hot-expand "<c") "center")
@@ -145,6 +145,10 @@ prepended to the element after the #+HEADER: tag."
                                    (?B . warning)
                                    (?C . success))
               org-tags-column -80
+              ;; 对于 TG 标签禁止继承
+              org-tags-exclude-from-inheritance '("TG")
+              ;; 设置列视图模式的表头
+              org-columns-default-format "%50ITEM(Task) %3PRIORITY(Priority) %5TODO(Status) %8EFFORT(Effort){:} %20SCHEDULED %20DEADLINE"
               org-log-done 'time
               org-catch-invisible-edits 'smart
               org-startup-indented t
@@ -225,7 +229,7 @@ prepended to the element after the #+HEADER: tag."
   ;; Rich text clipboard
   (use-package org-rich-yank
     :bind (:map org-mode-map
-                ("C-M-y" . org-rich-yank)))
+           ("C-M-y" . org-rich-yank)))
 
   ;; Table of contents
   (use-package toc-org
@@ -248,12 +252,12 @@ prepended to the element after the #+HEADER: tag."
     :functions (org-display-inline-images
                 org-remove-inline-images)
     :bind (:map org-mode-map
-                ("C-<f7>" . org-tree-slide-mode)
-                :map org-tree-slide-mode-map
-                ("<left>" . org-tree-slide-move-previous-tree)
-                ("<right>" . org-tree-slide-move-next-tree)
-                ("S-SPC" . org-tree-slide-move-previous-tree)
-                ("SPC" . org-tree-slide-move-next-tree))
+           ("C-<f7>" . org-tree-slide-mode)
+           :map org-tree-slide-mode-map
+           ("<left>" . org-tree-slide-move-previous-tree)
+           ("<right>" . org-tree-slide-move-next-tree)
+           ("S-SPC" . org-tree-slide-move-previous-tree)
+           ("SPC" . org-tree-slide-move-next-tree))
     :hook ((org-tree-slide-play . (lambda ()
                                     (text-scale-increase 4)
                                     (org-display-inline-images)
@@ -273,7 +277,7 @@ prepended to the element after the #+HEADER: tag."
     (org-pomodoro-mode-line-overtime ((t (:inherit error))))
     (org-pomodoro-mode-line-break ((t (:inherit success))))
     :bind (:map org-agenda-mode-map
-                ("P" . org-pomodoro))))
+           ("P" . org-pomodoro))))
 
 (provide 'init-org)
 
