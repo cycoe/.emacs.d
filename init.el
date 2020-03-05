@@ -156,6 +156,7 @@ decrease this. If you experience stuttering, increase this.")
 (require 'init-rss)
 (require 'init-utils)
 (require 'init-evil)
+(require 'init-hexo)
 
 ;; Programming
 (require 'init-vcs)
