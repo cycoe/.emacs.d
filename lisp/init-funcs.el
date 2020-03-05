@@ -30,13 +30,13 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'init-const))
+(require 'cl-lib)
+
+(require 'init-const)
+(require 'init-custom)
 
 ;; Suppress warnings
-(defvar centaur-package-archives-alist)
-(defvar centaur-theme-alist)
-(defvar centaur-proxy)
+(defvar circadian-themes)
 (defvar socks-noproxy)
 (defvar socks-server)
 
@@ -148,15 +148,14 @@ Same as `replace-string C-q C-m RET RET'."
 
 ;; Open custom file
 (defun open-custom-file()
-  "Open custom.el if exists, otherwise create it."
+  "Open or create `custom-file'."
   (interactive)
-  (let ((custom-example
-         (expand-file-name "custom-example.el" user-emacs-directory)))
-    (unless (file-exists-p custom-file)
-      (if (file-exists-p custom-example)
-          (copy-file custom-example custom-file)
-        (error "Unable to find \"%s\"" custom-example)))
-    (find-file custom-file)))
+  (unless (file-exists-p custom-file)
+    (if (file-exists-p centaur-custom-example-file)
+        (copy-file centaur-custom-example-file custom-file)
+      (user-error "The file `%s' doesn't exist" centaur-custom-example-file)))
+  (find-file custom-file)
+  (find-file-other-window centaur-custom-post-file))
 
 ;; Misc
 (defun create-scratch-buffer ()
@@ -203,20 +202,17 @@ Same as `replace-string C-q C-m RET RET'."
 
 Save to `custom-file' if NO-SAVE is nil."
   (customize-set-variable variable value)
-
   (when (and (not no-save)
              (file-writable-p custom-file))
     (with-temp-buffer
       (insert-file-contents custom-file)
-      (let ((regexp (format "^[\t ]*[;]*[\t ]*(setq %s .*)"
-                            (symbol-name variable))))
-        (when (string-match-p regexp (buffer-string))
-          (replace-regexp regexp
-                          (format "(setq %s '%s)"
-                                  (symbol-name variable)
-                                  (symbol-name value)))
-          (write-region nil nil custom-file)
-          (message "Save %s (%s)" variable value))))))
+      (goto-char (point-min))
+      (while (re-search-forward
+              (format "^[\t ]*[;]*[\t ]*(setq %s .*)" variable)
+              nil t)
+        (replace-match (format "(setq %s '%s)" variable value) nil nil))
+      (write-region nil nil custom-file)
+      (message "Saved %s (%s) to %s" variable value custom-file))))
 
 (define-minor-mode centaur-read-mode
   "Minor Mode for better reading experience."
@@ -262,8 +258,6 @@ Save to `custom-file' if NO-SAVE is nil."
 Not displaying the chart if NO-CHART is non-nil.
 Return the fastest package archive."
   (interactive)
-  (unless (executable-find "curl")
-    (user-error "curl is not found"))
 
   (let* ((urls (mapcar
                 (lambda (url)
@@ -275,8 +269,12 @@ Return the fastest package archive."
          (durations (mapcar
                      (lambda (url)
                        (let ((start (current-time)))
-                         (message "Fetching %s" url)
-                         (call-process "curl" nil nil nil "--max-time" "10" url)
+                         (message "Fetching %s..." url)
+                         (cond ((executable-find "curl")
+                                (call-process "curl" nil nil nil "--max-time" "10" url))
+                               ((executable-find "wget")
+                                (call-process "wget" nil nil nil "--timeout=10" url))
+                               (t (user-error "curl or wget is not found")))
                          (float-time (time-subtract (current-time) start))))
                      urls))
          (fastest (car (nth (cl-position (apply #'min durations) durations)
@@ -304,6 +302,7 @@ Return the fastest package archive."
   "Address blank screen issue with child-frame in fullscreen."
   (and sys/mac-cocoa-p
        emacs/>=26p
+       (boundp ns-use-native-fullscreen)
        (setq ns-use-native-fullscreen nil)))
 
 
@@ -417,31 +416,53 @@ If SYNC is non-nil, the updating process is synchronous."
   (run-hooks 'after-load-theme-hook))
 (advice-add #'load-theme :after #'run-after-load-theme-hook)
 
-(defun centaur--real-theme (theme)
-  "Return real THEME name."
+(defun centaur--theme-name (theme)
+  "Return internal THEME name."
   (or (alist-get theme centaur-theme-alist) theme))
 
 (defun centaur-compatible-theme-p (theme)
   "Check if the THEME is compatible. THEME is a symbol."
-  (string-prefix-p "doom" (symbol-name (centaur--real-theme theme))))
-
-(defun centaur-load-theme (theme &optional no-save)
-  "Set color THEME. Save to `custom-file' if NO-SAVE is nil."
-  (interactive
-   (list
-    (intern (completing-read "Load theme: "
-                             (mapcar #'car centaur-theme-alist)))))
-  ;; Disable others and enable new one
-  (mapc #'disable-theme custom-enabled-themes)
-  (load-theme (centaur--real-theme theme) t)
-
-  ;; Set option
-  (centaur-set-variable 'centaur-theme theme no-save))
-(global-set-key (kbd "C-c T") #'centaur-load-theme)
+  (or (memq theme '(auto random))
+      (string-prefix-p "doom" (symbol-name (centaur--theme-name theme)))))
 
 (defun centaur-dark-theme-p ()
   "Check if the current theme is a dark theme."
   (eq (frame-parameter nil 'background-mode) 'dark))
+
+(defun centaur--load-theme (theme)
+  "Disable others and enable new one."
+  (message "Loading theme `%s'" theme)
+  (mapc #'disable-theme custom-enabled-themes)
+  (load-theme theme t))
+
+(defun centaur-load-random-theme ()
+  "Load the random theme."
+  (interactive)
+  (let* ((themes (mapcar #'cdr centaur-theme-alist))
+         (theme (nth (random (length themes)) themes)))
+    (if theme
+        (centaur--load-theme theme)
+      (user-error "Failed to load `random' theme"))))
+
+(defun centaur-load-theme (theme &optional no-save)
+  "Load color THEME. Save to `custom-file' if NO-SAVE is nil."
+  (interactive
+   (list (intern (completing-read
+                  "Load theme: "
+                  `(auto random ,@(mapcar #'car centaur-theme-alist))))))
+  ;; Set option
+  (centaur-set-variable 'centaur-theme theme no-save)
+
+  (pcase centaur-theme
+    ('auto
+     ;; Time-switching themes
+     (use-package circadian
+       :functions circadian-setup
+       :custom (circadian-themes centaur-auto-themes)
+       :init (circadian-setup)))
+    ('random (centaur-load-random-theme))
+    (_ (centaur--load-theme (centaur--theme-name theme)))))
+(global-set-key (kbd "C-c T") #'centaur-load-theme)
 
 
 
@@ -450,15 +471,16 @@ If SYNC is non-nil, the updating process is synchronous."
   "Show HTTP/HTTPS proxy."
   (interactive)
   (if url-proxy-services
-      (message "Current HTTP proxy is \"%s\"" centaur-proxy)
+      (message "Current HTTP proxy is `%s'" centaur-proxy)
     (message "No HTTP proxy")))
 
 (defun proxy-http-enable ()
   "Enable HTTP/HTTPS proxy."
   (interactive)
-  (setq url-proxy-services `(("http" . ,centaur-proxy)
-                             ("https" . ,centaur-proxy)
-                             ("no_proxy" . "^\\(localhost\\|192.168.*\\|10.*\\)")))
+  (setq url-proxy-services
+        `(("http" . ,centaur-proxy)
+          ("https" . ,centaur-proxy)
+          ("no_proxy" . "^\\(localhost\\|192.168.*\\|10.*\\)")))
   (proxy-http-show))
 
 (defun proxy-http-disable ()
@@ -474,10 +496,10 @@ If SYNC is non-nil, the updating process is synchronous."
       (proxy-http-disable)
     (proxy-http-enable)))
 
-(when emacs/>=25.2p
-  (defun proxy-socks-show ()
-    "Show SOCKS proxy."
-    (interactive)
+(defun proxy-socks-show ()
+  "Show SOCKS proxy."
+  (interactive)
+  (when (fboundp 'cadddr)                ; defined 25.2+
     (if socks-noproxy
         (message "Current SOCKS%d proxy is %s:%d"
                  (cadddr socks-server) (cadr socks-server) (caddr socks-server))

@@ -151,11 +151,13 @@ For Example:
 (setq centaur-server nil)                      ; Enable `server-mode' or not: t or nil
 (setq centaur-icon nil)                        ; Display icons or not: t or nil
 (setq centaur-package-archives 'emacs-china)   ; Package repo: melpa, melpa-mirror, emacs-china, netease or tuna
-(setq centaur-theme 'dark)                     ; Color theme: default, classic, colorful, dark, light, day or night
+(setq centaur-theme 'light)                    ; Color theme: auto, random, default, classic, colorful, dark, light, day or night
 (setq centaur-dashboard nil)                   ; Use dashboard at startup or not: t or nil
 (setq centaur-lsp 'eglot)                      ; Set LSP client: lsp-mode, eglot or nil
-(setq centaur-chinese-calendar nil)            ; Use Chinese calendar or not: t or nil
+(setq centaur-lsp-format-on-save-ignore-modes '(c-mode c++-mode)
+(setq centaur-chinese-calendar t)              ; Use Chinese calendar or not: t or nil
 (setq centaur-prettify-symbols-alist nil)      ; Alist of symbol prettifications
+(setq centaur-prettify-org-symbols-alist nil)  ; Alist of symbol prettifications for `org-mode'
 (setq centaur-benchmark-init t)                ; Enable initialization benchmark or not: t or nil
 ```
 
@@ -276,6 +278,11 @@ For the personal configurations, you could put to `~/.emacs.d/custom-post.org`
     Please refer to #33. You should instead set environment variables in startup
     files like .profile, .bash_profile or .zshenv, then `Centaur Emacs` is able
     to recognize and import the environment variables.
+
+1. How to use [zoom-window](https://github.com/syohex/emacs-zoom-window) in
+   `Centuar Emacs`?
+
+   See [#169](https://github.com/seagle0128/.emacs.d/issues/169#issuecomment-590035527).
 
 ## Donate
 
