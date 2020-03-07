@@ -390,19 +390,20 @@
     (setq ns-pop-up-frames nil)))
 
 ;; coding font for english and chinese
-(set-face-attribute 'default nil
-                    :family "Sarasa Term SC"
-                    :height 120
-                    :width 'medium
-                    :weight 'medium)
+;; (set-face-attribute 'default nil
+;;                     :family "Sarasa Term SC"
+;;                     :height 120
+;;                     :width 'medium
+;;                     :weight 'medium)
 
+;; set specific font for Chinese charactors
 (if (display-graphic-p)
     (dolist (charset '(kana han symbol cjk-misc bopomofo))
       (set-fontset-font (frame-parameter nil 'font)
                         charset (font-spec :family "Sarasa Term SC"
                                            :height 120
-					                       :width 'medium
-					                       :weight 'medium))))
+					                                 :width 'medium
+					                                 :weight 'medium))))
 
 ;; Don't use GTK+ tooltip
 (when (boundp 'x-gtk-use-system-tooltips)
