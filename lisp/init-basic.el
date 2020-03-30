@@ -89,6 +89,10 @@
           exec-path-from-shell-arguments '("-l"))
     (exec-path-from-shell-initialize)))
 
+;; Use these setup to enhance the performance of Emacs
+(setq gc-cons-threshold 100000000)
+(setq read-process-output-max (* 1024 1024))
+
 ;; Start server
 (use-package server
   :ensure nil
