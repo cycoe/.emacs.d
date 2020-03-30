@@ -423,7 +423,8 @@ If SYNC is non-nil, the updating process is synchronous."
 (defun centaur-compatible-theme-p (theme)
   "Check if the THEME is compatible. THEME is a symbol."
   (or (memq theme '(auto random))
-      (string-prefix-p "doom" (symbol-name (centaur--theme-name theme)))))
+      (string-prefix-p "doom" (symbol-name (centaur--theme-name theme)))
+      (string-prefix-p "moe" (symbol-name (centaur--theme-name theme)))))
 
 (defun centaur-dark-theme-p ()
   "Check if the current theme is a dark theme."

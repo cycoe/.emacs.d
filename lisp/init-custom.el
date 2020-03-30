@@ -118,6 +118,7 @@
   '((default  . doom-one)
     (classic  . doom-molokai)
     (colorful . doom-snazzy)
+    (moe      . moe-light)
     (dark     . doom-dark+)
     (light    . doom-one-light)
     (day      . doom-acario-light)
