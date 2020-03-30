@@ -144,13 +144,17 @@ decrease this. If you experience stuttering, increase this.")
 (require 'init-markdown)
 (require 'init-org)
 (require 'init-latex)
+(require 'init-dot)
 (require 'init-reader)
+(require 'init-english)
 
 (require 'init-docker)
 (require 'init-utils)
 (require 'init-evil)
 (require 'init-mu4e)
+(require 'init-telega)
 (require 'init-hexo)
+(require 'init-rime)
 
 ;; Programming
 (require 'init-vcs)
