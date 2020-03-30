@@ -7,7 +7,9 @@
   "w-" 'split-window-below
   "wk" 'delete-window
   "bk" 'kill-buffer
-  "bf" 'counsel-switch-buffer
+  "bf" 'ivy-switch-buffer
+  "bm" 'ibuffer
+  "k" 'kill-current-buffer
   "ff" 'counsel-find-file
   "fr" 'counsel-recentf
   "e" 'eval-last-sexp
