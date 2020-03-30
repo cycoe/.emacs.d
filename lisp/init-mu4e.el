@@ -24,6 +24,8 @@
  mu4e-attachment-dir "/data/cycoe/Downloads"
  ;; prefer html view
  mu4e-view-prefer-html t
+ ;; show fancy chars in mu4e head view
+ mu4e-use-fancy-chars 't
  ;; don't save message to Sent Messages, Gmail/IMAP takes care of this
  ;; (See the documentation for `mu4e-sent-messages-behavior' if you have
  ;; additional non-Gmail addresses and want assign them different
@@ -91,7 +93,7 @@
                    (smtpmail-default-smtp-server  . "smtp.163.com")
                    (smtpmail-smtp-server          . "smtp.163.com")
                    (smtpmail-smtp-service         . 994)
-                   (mu4e-get-mail-command         . "mbsync Netease")
+                   (mu4e-get-mail-command         . "mbsync -a")
                    (mu4e-maildir-shortcuts . (("/cycoejoo@163.com/INBOX"   . ?i)
                                               ("/cycoejoo@163.com/Sent"    . ?s)
                                               ("/cycoejoo@163.com/Refile"  . ?r)
@@ -127,7 +129,7 @@
                    (smtpmail-default-smtp-server  . "smtp.qq.com")
                    (smtpmail-smtp-server          . "smtp.qq.com")
                    (smtpmail-smtp-service         . 465)
-                   (mu4e-get-mail-command         . "mbsync QQ")
+                   (mu4e-get-mail-command         . "mbsync -a")
                    (mu4e-maildir-shortcuts . (("/871873687@qq.com/INBOX"   . ?i)
                                               ("/871873687@qq.com/Sent"    . ?s)
                                               ("/871873687@qq.com/Refile"  . ?r)
@@ -152,6 +154,11 @@
 ;; use imagemagick if available
 (when (fboundp 'imagemagick-register-types)
   (imagemagick-register-types))
+
+;; Setup mu4e alert notification
+(mu4e-alert-set-default-style 'libnotify)
+(setq mu4e-alert-email-notification-types '(count))
+(add-hook 'after-init-hook #'mu4e-alert-enable-notifications)
 
 ;; set a key jump along the links in message view
 (add-hook 'mu4e-view-mode-hook
