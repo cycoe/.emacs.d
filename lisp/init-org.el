@@ -102,7 +102,7 @@ prepended to the element after the #+HEADER: tag."
                     (self-insert-command 1)))))
   :hook ((org-mode . (lambda ()
                        "Beautify org symbols."
-(setq prettify-symbols-alist centaur-prettify-symbols-alist)
+                       (setq prettify-symbols-alist centaur-prettify-symbols-alist)
                        (prettify-symbols-mode 1)
 
                        ;; set latex to xelatex
@@ -118,23 +118,67 @@ prepended to the element after the #+HEADER: tag."
   :config
   ;; To speed up startup, don't put to init section
   (setq org-todo-keywords
-              '((sequence "TODO(t)" "DOING(i)" "HANGUP(h)" "|" "DONE(d)" "CANCEL(c)")
-                (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)" "|" "FIXED(f)"))
-              org-todo-keyword-faces '(("HANGUP" . warning))
-              org-priority-faces '((?A . error)
-                                   (?B . warning)
-                                   (?C . success))
-              org-tags-column -80
-              ;; 对于 TG 标签禁止继承
-              org-tags-exclude-from-inheritance '("TG")
-              ;; 设置列视图模式的表头
-              org-columns-default-format "%50ITEM(Task) %3PRIORITY(Priority) %5TODO(Status) %8EFFORT(Effort){:} %20SCHEDULED %20DEADLINE"
-              org-log-done 'time
-              org-catch-invisible-edits 'smart
-              org-startup-indented t
-              org-ellipsis (if (char-displayable-p ?) "  " nil)
-              org-pretty-entities nil
-              org-hide-emphasis-markers t)
+        '((sequence "TODO(t)" "DOING(i)" "HANGUP(h)" "|" "DONE(d)" "CANCEL(c)")
+          (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)" "|" "FIXED(f)"))
+        org-todo-keyword-faces '(("HANGUP" . warning))
+        org-priority-faces '((?A . error)
+                             (?B . warning)
+                             (?C . success))
+        ;; tag 显示在 80 列位置并靠右对齐
+        org-tags-column -80
+        ;; 设置禁止继承的标签
+        org-tags-exclude-from-inheritance '("TG")
+        ;; 设置列视图模式的表头
+        org-columns-default-format "%50ITEM(Task) %3PRIORITY(Priority) %5TODO(Status) %8EFFORT(Effort){:} %20SCHEDULED %20DEADLINE"
+        ;; 当标签转换为 done 时自动记录 close 时间
+        ;; 当标签转换为 done 时自动 clock out
+        org-log-done '(time . org-clock-out)
+        ;; 设置默认的图片宽度 (px)
+        org-image-actual-width '(800)
+        org-catch-invisible-edits 'smart
+        org-startup-indented t
+        org-ellipsis (if (char-displayable-p ?) "  " nil)
+        org-pretty-entities nil
+        org-hide-emphasis-markers t)
+
+  (defun cycoe/create-image-dir (create &optional image-dir)
+    (interactive)
+    (let ((dir (or image-dir (car (split-string (buffer-name) "\\.")))))
+      (when create
+        (if (file-exists-p dir)
+            (message "directory ./%s is exists!" dir)
+          (make-directory-internal dir)))
+      dir))
+
+  ;; insert picture from clipboard
+  (defun org-insert-clipboard-image ()
+    (interactive)
+    (let ((filepath (format "%s/Screenshot_%s.png"
+                            (cycoe/create-image-dir t)
+                            (make-temp-name (format-time-string "%Y%m%d_%H%M%S_")))))
+      (shell-command (concat "xclip -selection clipboard -t image/png -o > /dev/null && xclip -selection clipboard -t image/png -o > " filepath))
+      (when (file-exists-p filepath)
+        (insert (concat "[[file:" filepath "]]")))))
+
+  ;; 插入图片
+  (use-package org-download
+    :ensure t
+	  :bind ("C-S-y" . org-download-image)
+	  :init
+	  (require 'org-download)
+    :hook ((org-mode . (lambda ()
+                         ;; Drag and drop to Dired
+                         (org-download-enable)
+                         (setq org-download-image-dir (cycoe/create-image-dir nil))))))
+
+  ;; use ox-reveal to generate presentation
+  (use-package ox-reveal
+    :ensure ox-reveal
+    :init
+    (setq org-reveal-root "file:////data/cycoe/Downloads/reveal.js-3.9.2"
+          org-reveal-mathjax t)
+    :config
+    (load-library 'ox-reveal))
 
   ;; Add new template
   (add-to-list 'org-structure-template-alist '("n" . "note"))
@@ -185,6 +229,7 @@ prepended to the element after the #+HEADER: tag."
                                (css . t)
                                (sass . t)
                                (C . t)
+                               (dot . t)
                                (java . t)
                                (plantuml . t)))
 
