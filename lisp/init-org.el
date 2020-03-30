@@ -248,6 +248,9 @@ prepended to the element after the #+HEADER: tag."
     :if (executable-find "jupyter")     ; DO NOT remove
     :init (cl-pushnew '(ipython . t) load-language-list))
 
+  (use-package ob-mermaid
+    :init (cl-pushnew '(mermaid . t) load-language-list))
+
   (org-babel-do-load-languages 'org-babel-load-languages
                                load-language-list)
 
@@ -303,6 +306,17 @@ prepended to the element after the #+HEADER: tag."
     (org-pomodoro-mode-line-break ((t (:inherit success))))
     :bind (:map org-agenda-mode-map
            ("P" . org-pomodoro))))
+
+;; org-roam
+(when emacs/>=26p
+  (use-package org-roam
+    :hook (after-init . org-roam-mode)
+    :bind (:map org-roam-mode-map
+           (("C-c n l" . org-roam)
+            ("C-c n f" . org-roam-find-file)
+            ("C-c n g" . org-roam-graph-show))
+           :map org-mode-map
+           (("C-c n i" . org-roam-insert)))))
 
 (provide 'init-org)
 
