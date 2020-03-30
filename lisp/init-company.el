@@ -72,6 +72,29 @@
   (use-package company-prescient
     :init (company-prescient-mode 1))
 
+  ;; Add completion for shell commands
+  (use-package company-shell
+    :init (add-to-list 'company-backends '(company-shell company-shell-env company-fish-shell)))
+
+  ;; Add completion for emoji
+  (use-package company-emoji
+    :hook ((org-mode markdown-mode) . (lambda ()(add-to-list 'company-backends 'company-emoji))))
+
+  (use-package company-files
+    :ensure nil
+    :init (add-to-list 'company-backends 'company-files))
+
+  (use-package company-graphviz-dot
+    :ensure nil
+    :init (add-to-list 'company-backends 'company-graphviz-dot-backend))
+
+  ;; (use-package reftex
+  ;;   :init (add-to-list 'company-backends '(company-reftex-labels company-reftex-citations))
+  ;;   :config
+  ;;   ;; Activate nice interface between RefTeX and AUCTeX
+  ;;   (setq reftex-plug-into-AUCTeX t)
+  ;;   (reftex-mode))
+
   ;; Icons and quickhelp
   (when emacs/>=26p
     (use-package company-box
