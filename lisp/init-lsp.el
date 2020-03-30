@@ -426,6 +426,19 @@ Return a list of strings as the completion candidates."
    (use-package lsp-julia
      :hook (julia-mode . (lambda () (require 'lsp-julia))))
 
+   (use-package lsp-haskell
+     :hook (haskell-mode . (lambda () (require 'lsp-haskell) 'lsp)))
+
+   (add-to-list 'load-path "/data/cycoe/GitHub/lsp-latex/")
+   ;; "texlab" must be located at a directory contained in `exec-path'.
+   ;; If you want to put "texlab" somewhere else,
+   ;; you can specify the path to "texlab" as follows:
+   ;; (setq lsp-latex-texlab-executable "/path/to/texlab")
+   (use-package lsp-latex
+     :ensure nil
+     :init (require 'lsp-latex)
+     :hook ((LaTeX-mode latex-mode TeX-mode tex-mode) . 'lsp))
+
    ;; Java support
    (use-package lsp-java
      :hook (java-mode . (lambda () (require 'lsp-java))))))
