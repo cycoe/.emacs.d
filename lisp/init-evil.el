@@ -58,14 +58,9 @@
     (define-key evil-motion-state-map (kbd "C-u") 'evil-scroll-up)
     (define-key evil-insert-state-map (kbd "C-u") 'evil-scroll-up))
   :config
+  ;; Set some mode with emacs instead of evil
+  (evil-set-initial-state 'dired-mode 'emacs)
+  (evil-set-initial-state 'hexo-mode 'emacs)
   (evil-mode 1))
-
-;; If above code errors, following code can be used
-;;(setq evil-want-C-u-scroll t)
-;;(define-key evil-normal-state-map (kbd "C-u") 'evil-scroll-up)
-;;(define-key evil-visual-state-map (kbd "C-u") 'evil-scroll-up)
-;;(define-key evil-insert-state-map (kbd "C-u") 'evil-scroll-up)
-;;(require 'evil)
-;;(evil-mode 1)
 
 (provide 'init-evil)
