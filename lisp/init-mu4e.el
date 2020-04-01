@@ -185,9 +185,5 @@
 
 ;; store link to message if in header view, not to header query
 (setq org-mu4e-link-query-in-headers-mode nil)
-;; use org-capture to add a new todo
-(setq org-capture-templates
-      '(("t" "todo" entry (file+headline "/data/cycoe/Documents/Orgs/TODO.org" "Tasks")
-         "* TODO [#A] %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n%a\n")))
 
 (provide 'init-mu4e)
