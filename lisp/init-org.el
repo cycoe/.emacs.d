@@ -129,7 +129,7 @@ prepended to the element after the #+HEADER: tag."
         ;; 设置禁止继承的标签
         org-tags-exclude-from-inheritance '("TG")
         ;; 设置列视图模式的表头
-        org-columns-default-format "%50ITEM(Task) %3PRIORITY(Priority) %5TODO(Status) %8EFFORT(Effort){:} %20SCHEDULED %20DEADLINE"
+        org-columns-default-format "%50ITEM(Task) %3PRIORITY(Priority) %8TODO(Status) %8EFFORT(Effort){:} %20SCHEDULED %20DEADLINE"
         ;; 当标签转换为 done 时自动记录 close 时间
         ;; 当标签转换为 done 时自动 clock out
         org-log-done '(time . org-clock-out)
@@ -153,7 +153,7 @@ prepended to the element after the #+HEADER: tag."
   ;; insert picture from clipboard
   (defun org-insert-clipboard-image ()
     (interactive)
-    (let ((filepath (format "%s/Screenshot_%s.png"
+    (let ((filepath (format "./%s/Screenshot_%s.png"
                             (cycoe/create-image-dir t)
                             (make-temp-name (format-time-string "%Y%m%d_%H%M%S_")))))
       (shell-command (concat "xclip -selection clipboard -t image/png -o > /dev/null && xclip -selection clipboard -t image/png -o > " filepath))
@@ -163,7 +163,9 @@ prepended to the element after the #+HEADER: tag."
   ;; 插入图片
   (use-package org-download
     :ensure t
-	  :bind ("C-S-y" . org-download-image)
+	  :bind
+    ("C-S-y" . org-download-image)
+    ("C-S-c" . org-insert-clipboard-image)
 	  :init
 	  (require 'org-download)
     :hook ((org-mode . (lambda ()
