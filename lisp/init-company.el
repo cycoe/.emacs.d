@@ -115,8 +115,8 @@
     :init (add-to-list 'company-backends '(company-shell company-shell-env company-fish-shell)))
 
   ;; Add completion for emoji
-  (use-package company-emoji
-    :hook ((org-mode markdown-mode) . (lambda ()(add-to-list 'company-backends 'company-emoji))))
+  ;; (use-package company-emoji
+  ;;   :hook ((org-mode markdown-mode) . (lambda ()(add-to-list 'company-backends 'company-emoji))))
 
   (use-package company-files
     :ensure nil
