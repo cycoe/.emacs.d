@@ -44,7 +44,8 @@
   :ensure nil
   :hook (after-init . show-paren-mode)
   :init (setq show-paren-when-point-inside-paren t
-              show-paren-when-point-in-periphery t)
+              show-paren-when-point-in-periphery t
+              show-paren-style 'expression)
   :config
   (with-no-warnings
     ;; Display matching line for off-screen paren.
