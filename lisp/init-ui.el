@@ -92,6 +92,18 @@
     (warn "The current theme may not be compatible!")
     (centaur-load-theme centaur-theme t)))
 
+(use-package moe-theme
+  :ensure t
+  :init
+  (require 'moe-theme)
+  :config
+  (setq moe-theme-highlight-buffer-id t
+        moe-theme-resize-markdown-title '(1.5 1.4 1.3 1.2 1.0 1.0)
+        moe-theme-resize-org-title '(1.5 1.4 1.3 1.2 1.1 1.0 1.0 1.0 1.0)
+        moe-theme-resize-rst-title '(1.5 1.4 1.3 1.2 1.1 1.0))
+  (moe-theme-set-color 'red)
+  (moe-light))
+
 ;; Mode-line
 (use-package doom-modeline
   :custom
