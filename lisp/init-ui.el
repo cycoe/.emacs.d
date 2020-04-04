@@ -378,11 +378,6 @@
       window-divider-default-right-width 1)
 (add-hook 'window-setup-hook #'window-divider-mode)
 
-;; 暫時禁用這個模塊，会導致 org-mode 只有 80 列的显示范围
-;; Readably display text without adding line breaks
-;; (use-package virtual-auto-fill
-;;   :hook ((markdown-mode org-mode) . virtual-auto-fill-mode))
-
 ;; Use fixed pitch where it's sensible
 (use-package mixed-pitch
   :diminish)
