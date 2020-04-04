@@ -111,6 +111,13 @@
                        (add-hook 'before-save-hook
                                  #'fish_indent-before-save))))
 
+;; 在独立的 buffer 中编辑注释
+(use-package separedit
+  :ensure t
+  :init (require 'separedit)
+  :bind (:map prog-mode-map ("C-c '". separedit))
+  :config (setq separedit-default-mode 'org-mode))
+
 (provide 'init-prog)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
