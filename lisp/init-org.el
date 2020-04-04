@@ -178,9 +178,7 @@ prepended to the element after the #+HEADER: tag."
     :ensure ox-reveal
     :init
     (setq org-reveal-root "file:////data/cycoe/Downloads/reveal.js-3.9.2"
-          org-reveal-mathjax t)
-    :config
-    (load-library 'ox-reveal))
+          org-reveal-mathjax t))
 
   ;; Add new template
   (add-to-list 'org-structure-template-alist '("n" . "note"))
