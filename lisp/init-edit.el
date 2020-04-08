@@ -368,8 +368,16 @@
 (use-package hideshow
   :ensure nil
   :diminish hs-minor-mode
-  :bind (:map hs-minor-mode-map
-         ("C-`" . hs-toggle-hiding)))
+  :bind (:map prog-mode-map
+         ("C-c TAB" . hs-toggle-hiding)
+         ("M-+" . hs-show-all))
+  :hook (prog-mode . hs-minor-mode)
+  :custom
+  (hs-special-modes-alist
+   (mapcar 'purecopy
+           '((c-mode "{" "}" "/[*/]" nil nil)
+             (c++-mode "{" "}" "/[*/]" nil nil)
+             (rust-mode "{" "}" "/[*/]" nil nil)))))
 
 ;; Flexible text folding
 (use-package origami
