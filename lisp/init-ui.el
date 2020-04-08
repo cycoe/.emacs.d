@@ -401,7 +401,7 @@
     (dolist (charset '(kana han symbol cjk-misc bopomofo))
       (set-fontset-font (frame-parameter nil 'font)
                         charset (font-spec :family "Sarasa Term SC"
-                                           :height 140
+                                           :height 130
 					                                 :width 'medium
 					                                 :weight 'medium))))
 
