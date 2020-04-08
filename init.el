@@ -123,7 +123,6 @@ decrease this. If you experience stuttering, increase this.")
 
 (require 'init-ui)
 (require 'init-edit)
-(require 'init-fcitx)
 (require 'init-ivy)
 (require 'init-company)
 (require 'init-yasnippet)
