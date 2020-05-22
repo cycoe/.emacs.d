@@ -222,6 +222,11 @@ prepended to the element after the #+HEADER: tag."
         org-src-fontify-natively t
         org-src-tab-acts-natively t)
 
+  (setq org-babel-default-header-args:gnuplot
+        '((:results . "file")
+          (:exports . "both")
+          (:cache . "yes")))
+
   (defvar load-language-list '((emacs-lisp . t)
                                (perl . t)
                                (python . t)
@@ -231,6 +236,7 @@ prepended to the element after the #+HEADER: tag."
                                (sass . t)
                                (C . t)
                                (dot . t)
+                               (gnuplot . t)
                                (java . t)
                                (plantuml . t)))
 

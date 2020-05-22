@@ -144,6 +144,7 @@ decrease this. If you experience stuttering, increase this.")
 (require 'init-org)
 (require 'init-latex)
 (require 'init-dot)
+(require 'init-gnuplot)
 (require 'init-reader)
 (require 'init-english)
 
