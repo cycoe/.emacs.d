@@ -126,13 +126,6 @@
     :ensure nil
     :init (add-to-list 'company-backends 'company-graphviz-dot-backend))
 
-  ;; (use-package reftex
-  ;;   :init (add-to-list 'company-backends '(company-reftex-labels company-reftex-citations))
-  ;;   :config
-  ;;   ;; Activate nice interface between RefTeX and AUCTeX
-  ;;   (setq reftex-plug-into-AUCTeX t)
-  ;;   (reftex-mode))
-
   ;; Icons and quickhelp
   (when emacs/>=26p
     (use-package company-box
