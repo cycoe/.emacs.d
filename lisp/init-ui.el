@@ -193,6 +193,9 @@
      ("t a" (setq doom-modeline-buffer-file-name-style 'truncate-all)
       "truncate all"
       :toggle (eq doom-modeline-buffer-file-name-style 'truncate-all))
+     ("t n" (setq doom-modeline-buffer-file-name-style 'truncate-nil)
+      "truncate none"
+      :toggle (eq doom-modeline-buffer-file-name-style 'truncate-nil))
      ("r f" (setq doom-modeline-buffer-file-name-style 'relative-from-project)
       "relative from project"
       :toggle (eq doom-modeline-buffer-file-name-style 'relative-from-project))
@@ -234,6 +237,7 @@
 (use-package hide-mode-line
   :hook (((completion-list-mode
            completion-in-region-mode
+           pdf-annot-list-mode
            flycheck-error-list-mode) . hide-mode-line-mode)))
 
 ;; A minor-mode menu for mode-line
@@ -244,7 +248,7 @@
 ;; Icons
 ;; NOTE: Must run `M-x all-the-icons-install-fonts', and install fonts manually on Windows
 (use-package all-the-icons
-  :if (display-graphic-p)
+  :if (and centaur-icon (display-graphic-p))
   :init (unless (or sys/win32p (font-installed-p "all-the-icons"))
           (all-the-icons-install-fonts t))
   :config
@@ -264,6 +268,8 @@
         (memoize f)))
     (message "Reset all-the-icons"))
 
+  (add-to-list 'all-the-icons-icon-alist
+               '("^Rakefile$" all-the-icons-alltheicon "ruby-alt" :face all-the-icons-red))
   (add-to-list 'all-the-icons-icon-alist
                '("\\.go$" all-the-icons-fileicon "go" :face all-the-icons-blue))
   (add-to-list 'all-the-icons-icon-alist

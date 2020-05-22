@@ -32,6 +32,7 @@
 
 (require 'init-const)
 (require 'init-custom)
+(require 'init-funcs)
 
 (pcase centaur-lsp
   ('eglot
@@ -64,16 +65,30 @@
      ;; @see https://github.com/emacs-lsp/lsp-mode#performance
      (setq read-process-output-max (* 1024 1024)) ;; 1MB
 
-     (setq lsp-auto-guess-root nil      ; Detect project root
-           lsp-keep-workspace-alive nil ; Auto-kill LSP server
+     (setq lsp-keymap-prefix "C-c l"
+           lsp-auto-guess-root t
+           lsp-flycheck-live-reporting nil
+           lsp-keep-workspace-alive nil
+           lsp-prefer-capf t
+           lsp-signature-auto-activate nil
+
+           lsp-enable-file-watchers nil
+           lsp-enable-folding nil
            lsp-enable-indentation nil
            lsp-enable-on-type-formatting nil
-           lsp-keymap-prefix "C-c l")
+           lsp-enable-symbol-highlighting nil)
 
      ;; For `lsp-clients'
      (setq lsp-clients-python-library-directories '("/usr/local/" "/usr/"))
      (unless (executable-find "rls")
-       (setq lsp-rust-rls-server-command '("rustup" "run" "stable" "rls"))))
+       (setq lsp-rust-rls-server-command '("rustup" "run" "stable" "rls")))
+     :config
+     (with-no-warnings
+       (defun my-lsp--init-if-visible (func &rest args)
+         "Not enabling lsp in `git-timemachine-mode'."
+         (unless (bound-and-true-p git-timemachine-mode)
+           (apply func args)))
+       (advice-add #'lsp--init-if-visible :around #'my-lsp--init-if-visible)))
 
    (use-package lsp-ui
      :custom-face
@@ -108,10 +123,25 @@
         ("s c" (setq lsp-ui-sideline-show-code-actions (not lsp-ui-sideline-show-code-actions))
          "code actions" :toggle lsp-ui-sideline-show-code-actions)
         ("s i" (setq lsp-ui-sideline-ignore-duplicate (not lsp-ui-sideline-ignore-duplicate))
-         "ignore duplicate" :toggle lsp-ui-sideline-ignore-duplicate))))
+         "ignore duplicate" :toggle lsp-ui-sideline-ignore-duplicate))
+       "Action"
+       (("h" backward-char "←")
+        ("j" next-line "↓")
+        ("k" previous-line "↑")
+        ("l" forward-char "→")
+        ("C-a" mwim-beginning-of-code-or-line nil)
+        ("C-e" mwim-end-of-code-or-line nil)
+        ("C-b" backward-char nil)
+        ("C-n" next-line nil)
+        ("C-p" previous-line nil)
+        ("C-f" forward-char nil)
+        ("M-b" backward-word nil)
+        ("M-f" forward-word nil)
+        ("c" lsp-ui-sideline-apply-code-actions "apply code actions"))))
      :bind (("C-c u" . lsp-ui-imenu)
             :map lsp-ui-mode-map
-            ("M-<f6>" . lsp-ui-hydra/body))
+            ("M-<f6>" . lsp-ui-hydra/body)
+            ("M-RET" . lsp-ui-sideline-apply-code-actions))
      :hook (lsp-mode . lsp-ui-mode)
      :init (setq lsp-ui-doc-enable t
                  lsp-ui-doc-use-webkit nil
@@ -124,6 +154,7 @@
                  lsp-ui-sideline-enable t
                  lsp-ui-sideline-show-hover nil
                  lsp-ui-sideline-show-diagnostics nil
+                 lsp-ui-sideline-show-code-actions t
                  lsp-ui-sideline-ignore-duplicate t
 
                  lsp-ui-imenu-enable t
@@ -412,6 +443,12 @@ Return a list of strings as the completion candidates."
        (setq projectile-project-root-files-top-down-recurring
              (append '("compile_commands.json" ".ccls")
                      projectile-project-root-files-top-down-recurring))))
+
+   ;; Swift/C/C++/Objective-C
+   (when sys/macp
+     (use-package lsp-sourcekit
+       :init (setq lsp-sourcekit-executable
+                   "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp")))
 
    ;; Julia support
    (use-package lsp-julia
