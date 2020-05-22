@@ -133,8 +133,8 @@ prepended to the element after the #+HEADER: tag."
         ;; 当标签转换为 done 时自动记录 close 时间
         ;; 当标签转换为 done 时自动 clock out
         org-log-done '(time . org-clock-out)
-        ;; 设置默认的图片宽度 (px)
-        org-image-actual-width '(800)
+        ;; 设置默认的图片显示宽度 (px)
+        org-image-actual-width '(500)
         org-catch-invisible-edits 'smart
         org-startup-indented t
         org-ellipsis (if (char-displayable-p ?) "  " nil)
@@ -142,6 +142,7 @@ prepended to the element after the #+HEADER: tag."
         org-hide-emphasis-markers t)
 
   (defun cycoe/create-image-dir (create &optional image-dir)
+    "Create the image directory for current buffer. If create is nil, just return the directory name."
     (interactive)
     (let ((dir (or image-dir (car (split-string (buffer-name) "\\.")))))
       (when create
