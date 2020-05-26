@@ -62,6 +62,7 @@
   (evil-set-initial-state 'dired-mode 'emacs)
   (evil-set-initial-state 'hexo-mode 'emacs)
   (evil-set-initial-state 'special-mode 'emacs)
+  (evil-set-initial-state 'image-mode 'emacs)
   (evil-mode 1))
 
 (provide 'init-evil)
