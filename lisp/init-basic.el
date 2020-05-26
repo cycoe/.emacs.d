@@ -153,12 +153,12 @@
 
 ;; Mouse & Smooth Scroll
 ;; Scroll one line at a time (less "jumpy" than defaults)
-(when (display-graphic-p)
-  (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))
-        mouse-wheel-progressive-speed nil))
-(setq scroll-step 1
-      scroll-margin 0
-      scroll-conservatively 100000)
+;; (when (display-graphic-p)
+;;   (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))
+;;         mouse-wheel-progressive-speed nil))
+;; (setq scroll-step 1
+;;       scroll-margin 0
+;;       scroll-conservatively 100000)
 
 ;; Misc
 (fset 'yes-or-no-p 'y-or-n-p)
