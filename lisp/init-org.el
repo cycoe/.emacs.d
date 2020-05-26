@@ -118,9 +118,8 @@ prepended to the element after the #+HEADER: tag."
   :config
   ;; To speed up startup, don't put to init section
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "DOING(i)" "HANGUP(h)" "|" "DONE(d)" "CANCEL(c)")
-          (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)" "|" "FIXED(f)"))
-        org-todo-keyword-faces '(("HANGUP" . warning))
+        '((sequence "TODO(t)" "WAIT(w)" "|" "DONE(d)" "CANCEL(c)")
+          (sequence "BUG(b)" "HACK(h)" "WORKAROUND(k)" "|" "FIXED(f)"))
         org-priority-faces '((?A . error)
                              (?B . warning)
                              (?C . success))
