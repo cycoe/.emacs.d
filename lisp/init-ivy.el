@@ -108,7 +108,9 @@
 
          :map isearch-mode-map
          ("M-s" . swiper-isearch-toggle))
-  :hook ((after-init . ivy-mode)
+  :hook (
+         ;; BUG Disable ivy-mode because it breaks the org-insert-link path parsing
+         (after-init . ivy-mode)
          (ivy-mode . counsel-mode))
   :init
   (setq enable-recursive-minibuffers t) ; Allow commands in minibuffers
