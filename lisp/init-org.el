@@ -137,7 +137,7 @@ prepended to the element after the #+HEADER: tag."
         org-catch-invisible-edits 'smart
         org-startup-indented t
         org-ellipsis (if (char-displayable-p ?) "  " nil)
-        org-pretty-entities nil
+        org-pretty-entities t
         org-hide-emphasis-markers t)
 
   (defun cycoe/create-image-dir (create &optional image-dir)
@@ -164,14 +164,19 @@ prepended to the element after the #+HEADER: tag."
   (use-package org-download
     :ensure t
 	  :bind
-    ("C-S-y" . org-download-image)
-    ("C-S-c" . org-insert-clipboard-image)
+    (:map org-mode-map
+     ("C-S-y" . org-download-image)
+     ("C-S-c" . org-insert-clipboard-image))
 	  :init
 	  (require 'org-download)
     :hook ((org-mode . (lambda ()
                          ;; Drag and drop to Dired
                          (org-download-enable)
                          (setq org-download-image-dir (cycoe/create-image-dir nil))))))
+
+  (use-package org-cliplink
+    :ensure t
+    :bind (:map org-mode-map ("C-c l" . org-cliplink)))
 
   ;; use ox-reveal to generate presentation
   (use-package ox-reveal
