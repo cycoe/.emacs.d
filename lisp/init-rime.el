@@ -1,3 +1,5 @@
+;; init-rime.el --- Initialize emacs-rime configurations.	-*- lexical-binding: t -*-
+
 (defun +rime--char-before-to-string (num)
   "得到光标前第 `num' 个字符，并将其转换为字符串。"
   (let* ((point (point))
@@ -19,8 +21,7 @@
 1. 当前字符为英文字符（不包括空格）时，输入下一个字符为英文字符
 2. 当前字符为中文字符或输入字符为行首字符时，输入的字符为中文字符
 3. 以单个空格为界，自动切换中文和英文字符
-   即，形如 `我使用 emacs 编辑此函数' 的句子全程自动切换中英输入法
-"
+   即，形如 `我使用 emacs 编辑此函数' 的句子全程自动切换中英输入法"
   (let ((str-before-1 (+rime--char-before-to-string 0))
         (str-before-2 (+rime--char-before-to-string 1)))
     (unless (string= (buffer-name) " *temp*")
@@ -65,3 +66,6 @@
    ("C-S-f" . #'rime-force-enable)))
 
 (provide 'init-rime)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; init-rime.el ends here

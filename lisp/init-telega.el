@@ -104,3 +104,6 @@
         telega-sticker-set-download t))
 
 (provide 'init-telega)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; init-telega.el ends here
